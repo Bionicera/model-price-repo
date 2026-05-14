@@ -1,0 +1,25 @@
+name: Sync Model Pricing
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch from LiteLLM
+        run: |
+          curl -sSf -o model_prices_and_context_window.json \
+            https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+          sha256sum model_prices_and_context_window.json > model_prices_and_context_window.sha256
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add *.json *.sha256
+          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%d)" && git push
