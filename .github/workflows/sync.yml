@@ -2,7 +2,7 @@ name: Sync Model Pricing
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -22,4 +22,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add *.json *.sha256
-          git diff --staged --quiet || git commit -m "sync $(date -u +%Y-%m-%d)" && git push
+          if git diff --staged --quiet; then
+            echo "No pricing changes detected."
+            exit 0
+          fi
+
+          git commit -m "sync $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
